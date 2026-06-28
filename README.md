@@ -4,7 +4,7 @@ Custom map packs for [Subway Builder](https://store.steampowered.com/app/2659390
 
 ## Overview
 
-The Greater Tokyo map pack models the world's largest metropolitan area — home to over 24 million residents across Tokyo, Kanagawa, Saitama, Chiba, and parts of Ibaraki, Tochigi, and Gunma. The pack uses real-world census data, OpenStreetMap road networks, MLIT infrastructure datasets, and official visitor statistics to create a realistic transit demand simulation.
+The Greater Tokyo map pack models the world's largest metropolitan area — home to over 24 million residents across Tokyo, Kanagawa, Saitama and Chiba. The pack uses real-world census data, OpenStreetMap road networks, MLIT infrastructure datasets, and official visitor statistics to create a realistic transit demand simulation.
 
 | Statistic | Value |
 |-----------|-------|
