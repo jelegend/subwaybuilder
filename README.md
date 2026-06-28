@@ -18,31 +18,6 @@ The Greater Tokyo map pack models the world's largest metropolitan area — home
 | **Ocean depth tiles** | 15,557 tiles with 76,313 bathymetry features |
 | **Special demand types** | 6 categories (airports, hospitals, schools, universities) |
 
-## Installation
-
-### Prerequisites
-
-- [Subway Builder](https://store.steampowered.com/app/2659390/Subway_Builder/) installed on Steam
-- The game's **mapLoader mod** (automatically detected if installed)
-
-### Steps
-
-1. Download `TYO.zip` from the [latest release](https://github.com/jelegend/subwaybuilder/releases/latest)
-2. If you have the mapLoader mod installed, the game can install the pack automatically — just place the ZIP where the mod expects it, or use the in-game mod UI
-3. For manual installation:
-   - Extract the ZIP contents to your game's city data directory:
-     ```
-     %APPDATA%\metro-maker4\cities\data\TYO\
-     ```
-   - Copy the `.pmtiles` file to:
-     ```
-     %APPDATA%\railyard\tiles\TYO.pmtiles
-     ```
-   - Copy `thumbnail.svg` to:
-     ```
-     %APPDATA%\metro-maker4\public\data\city-maps\TYO.svg
-     ```
-4. Launch Subway Builder and select **Greater Tokyo** from the city selection screen
 
 ## Data Sources
 
