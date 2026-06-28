@@ -4,17 +4,19 @@ Custom map packs for [Subway Builder](https://store.steampowered.com/app/2659390
 
 ## Overview
 
-The Greater Tokyo map pack models the world's largest metropolitan area — home to over 28 million residents across Tokyo, Kanagawa, Saitama, Chiba, and parts of Ibaraki, Tochigi, and Gunma. The pack uses real-world census data, OpenStreetMap road networks, MLIT infrastructure datasets, and official visitor statistics to create a realistic transit demand simulation.
+The Greater Tokyo map pack models the world's largest metropolitan area — home to over 24 million residents across Tokyo, Kanagawa, Saitama, Chiba, and parts of Ibaraki, Tochigi, and Gunma. The pack uses real-world census data, OpenStreetMap road networks, MLIT infrastructure datasets, and official visitor statistics to create a realistic transit demand simulation.
 
 | Statistic | Value |
 |-----------|-------|
-| **Population** | 28,239,444 |
-| **Commuter population** | 21,160,835 |
-| **Special demand population** | 7,078,609 |
-| **Demand points** | 42,766 |
-| **Special demand points** | 19,730 |
-| **Coverage area** | ~10,000 km² (50km radius from central Tokyo) |
-| **Special demand types** | 19 categories (airports, hospitals, schools, universities, temples, museums, parks, and more) |
+| **Population** | 24,014,925 |
+| **Commuter population** | 20,106,263 |
+| **Special demand population** | 3,908,662 |
+| **Demand points** | 30,642 |
+| **Special demand points** | 8,041 |
+| **Coverage area** | ~10,900 km² (188 municipalities) |
+| **PMTiles zoom** | z7–z15 (19,669 tiles) |
+| **Ocean depth tiles** | 15,557 tiles with 76,313 bathymetry features |
+| **Special demand types** | 6 categories (airports, hospitals, schools, universities) |
 
 ## Installation
 
@@ -42,16 +44,12 @@ The Greater Tokyo map pack models the world's largest metropolitan area — home
      ```
 4. Launch Subway Builder and select **Greater Tokyo** from the city selection screen
 
-### Save Compatibility
-
-Saves created with earlier versions (v0.1.0–v0.5.0) are compatible with v0.6.0. The game gracefully handles demand points/pops that were removed in the optimization — their commute history is discarded but the save loads without errors. All stations, tracks, routes, and trains are preserved.
-
 ## Data Sources
 
 | Data | Source |
 |------|--------|
 | **Population & jobs** | Japanese national census (e-Stat), economic census, cho-aza (town-block) level data |
-| **Road network** | OpenStreetMap (Kantō region extract, March 2026) |
+| **Road network** | OpenStreetMap (Kantō region extract) |
 | **Buildings** | OpenStreetMap building footprints via Protomaps/Planetiler |
 | **Base map tiles** | Protomaps Basemap v4, built from OSM with Planetiler |
 | **Bathymetry** | GEBCO 2024 ocean depth grid |
@@ -60,52 +58,70 @@ Saves created with earlier versions (v0.1.0–v0.5.0) are compatible with v0.6.0
 | **Schools** | MLIT school data, MEXT enrolment statistics |
 | **Universities** | NIAD-QE institution data |
 | **Ports** | MLIT port data |
-| **Attractions** | Official visitor statistics for 95+ major Tokyo attractions |
 
 ## What's New in v0.6.0
 
-### Performance Optimization
+### Full Water Coverage
 
-v0.6.0 introduces major performance optimizations to address the 4GB Electron memory limit that caused stuttering and crashes with large transit networks:
+The PMTiles clip polygon now includes water rectangles for Tokyo Bay, the Shonan coast, and Sagami Bay. The map renders blue water throughout the entire bay and coastal areas — not just a thin strip hugging the coastline.
 
-- **Geographic edge pruning** — Removed sparse peripheral areas beyond 50km from central Tokyo, eliminating 13.5% of demand points while retaining 96% of the population
-- **Pop consolidation** — Merged 260,606 tiny population units (≤20 people) into nearby larger clusters, reducing total pops from 606,129 to 281,139 (53.6% reduction) with zero population loss
-- **Demand point consolidation** — Merged co-located demand points within 200m radius
-- **Driving path optimization** — Stripped pre-computed driving paths from small population units (only used for optional visualization, not simulation)
+- **19,669 PMTiles** with full z7–z15 zoom range
+- **15,557 tiles with ocean depth** — GEBCO 2024 bathymetry injected as ocean foundation polygons (depth −200 m to −1 m)
+- **76,313 bathymetry features** across 8 depth bands
 
-### Other Improvements
+### Industrial Port Islands
 
-- **Special demand schema v4** — 19 type codes with bilingual (Japanese/English) labels, MLIT-sourced infrastructure data
-- **Cho-aza census-based demand allocation** — Population and jobs allocated from town-block (cho-aza) level census data to demand points using polygon boundary matching and Voronoi assignment
-- **Ocean depth index** — GEBCO 2024 bathymetry with 3,996 depth polygons in 8 depth bands
-- **Ocean foundations PMTiles layer** — 5,507 tiles with 77,582 underwater foundation features
-- **Custom attractions** — 95 major Tokyo attractions with real annual visitor counts from official sources
-- **Proper SVG thumbnail** — Rendered from water polygon data (replaces placeholder)
-- **Improved name handling** — All 19,730 special demand points have clean Japanese names
+Artificial port islands (Daikoku, Ogishima, Higashi-Ogishima, Minamihonmoku) have **zero residents** — nobody lives there — but retain **real worker/job counts** based on census employment data. A spatial bbox filter catches demand points snapped onto these islands after OSM place-node snapping, and redistributes their residents to non-industrial cells in the same municipality.
 
-### Size Comparison
+### Demand Allocation
 
-| Version | ZIP Size | Pops | Population |
+- **Cho-aza census-based allocation** — Population and jobs allocated from town-block level census data using polygon boundary matching (102 municipalities) and Voronoi assignment (91 municipalities)
+- **Voronoi uniform fallback** — Municipalities with <10% cho-aza geocode rate get uniform distribution to avoid single-seed population collapse
+- **Municipality totals match census data exactly** — no population loss
+- **No demand point exceeds 10,000 residents**
+
+### Pipeline Improvements
+
+- O/D flow generation moved after snap + industrial zone filter for correct demand point states
+- Post-snap industrial zone filter in snap script
+- Display PMTiles builder expanded south/east visual buffers (0.20°) to include all water tiles
+- PMTiles Docker build uses clip polygon with `--clip-buffer=0` for exact municipality + water boundary clipping
+
+## Pack Contents
+
+| File | Size | Description |
+|------|------|-------------|
+| `TYO.pmtiles` | 181 MB | Vector basemap tiles (z7–z15) with ocean foundations |
+| `buildings_index.json` | 195 MB | Building footprints quadtree index (936,786 buildings) |
+| `demand_data.json` | 56 MB | Demand points and O/D pops |
+| `water.geojson` | 10 MB | Water polygon features |
+| `roads.geojson` | 24 MB | Road network |
+| `ocean_depth_index.json` | 3.8 MB | GEBCO bathymetry depth index |
+| `.railyard_map/special_demand_points.json` | 2.6 MB | 8,041 special demand points |
+| `runways_taxiways.geojson` | 1.2 MB | Airport runways |
+| `thumbnail.svg` | 157 KB | SVG thumbnail |
+| `config.json` | 4 KB | Pack metadata |
+
+## Version History
+
+| Version | ZIP size | Pops | Population |
 |---------|----------|------|------------|
-| v0.1.0 | 230 MB | 229,673 | 229,673 |
+| **v0.6.0** | **214 MB** | **253,334** | **24,014,925** |
 | v0.5.0 | 269 MB | 606,129 | 29,536,566 |
-| **v0.6.0** | **245 MB** | **281,139** | **28,239,444** |
 
 ## Changelog
 
 ### v0.6.0 (June 2026)
-- Performance: Geographic edge pruning (50km cutoff)
-- Performance: Pop consolidation (606K → 281K pops, 53.6% reduction)
-- Performance: Demand point consolidation (51K → 43K points)
-- Performance: Driving path stripping for small pops
-- Feature: Special demand schema v4 with 19 type codes
-- Feature: Cho-aza census-based demand allocation (187 municipalities, exact totals)
-- Feature: Ocean depth index (GEBCO 2024, 3,996 polygons)
-- Feature: Ocean foundations PMTiles layer (5,507 tiles)
-- Feature: Custom attractions with real visitor data (95 attractions)
-- Feature: Proper SVG thumbnail from water polygons
-- Fix: Name format — all special demand points now have clean Japanese names
-- Fix: minFlowSize set to 0 (aligns with ITM pack, improves driving path coverage)
+- Feature: Full Tokyo Bay, Shonan coast, and Sagami Bay water coverage in PMTiles
+- Feature: GEBCO 2024 bathymetry ocean foundations (15,557 tiles, 76,313 features)
+- Feature: Industrial port islands — zero residents, real job counts preserved
+- Feature: Cho-aza census-based demand allocation (188 municipalities, exact totals)
+- Feature: Voronoi uniform fallback for missing cho-aza boundary data
+- Feature: Post-snap industrial zone filter with resident redistribution
+- Feature: Full z7–z15 zoom range retained (no zoom reduction)
+- Fix: Minamihonmoku false residents (Voronoi collapse fixed by spatial filter)
+- Fix: Daikoku/Ogishima false residents (zeroed with redistribution)
+- Fix: O/D flow generation now runs after snap + industrial filter
 
 ### v0.5.0 (April 2026)
 - Improved demand point generation and flow routing
